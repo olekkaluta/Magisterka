@@ -1,0 +1,256 @@
+\documentclass[]{article}
+\usepackage{breqn}
+\usepackage{polski}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{physics}
+\usepackage{graphicx}
+%opening
+\title{Lagranżowskie sieci neuronowe}
+\author{Aleksander Kaluta}
+
+\begin{document}
+	
+	\maketitle
+	
+	\section{Mechanika Lagrange'a}
+	Teoria + 3/4 zadania\\
+	
+	Równania Lagrange'a możemy wykorzystać do naszego problemu. Chcemy stworzyć model ruchu wahadła podwójnego. Do tego celu będziemy potrzebowali obliczyć dynamikę modelu, a następnie za pomocą metod numerycznych otrzymać ruch wahadła. Na początku opiszmy model wahadła podwójnego
+	\\
+	\includegraphics[scale=0.8]{zdj/1}
+	\\
+	\begin{align*}
+		x_1 &= l_1 \sin \theta_1 \\
+		x_2 &= l_1 \sin \theta_1 + l_2 \sin \theta_2 \\
+		y_1 &= -l_1 \cos \theta_1 \\
+		y_2 &= -l_1 \cos \theta_1 - l_2 \cos \theta_2
+	\end{align*}
+	
+	Następnie zróżniczkujmy te zmienne, aby policzyć prędkości:
+	\begin{align*}
+		\dot{x}_1 &= l_1 \dot{\theta}_1 \cos \theta_1 \\
+		\dot{x}_2 &= l_1 \dot{\theta}_1 \cos \theta_1 + l_2 \dot{\theta}_2 \cos \theta_2 \\
+		\dot{y}_1 &= l_1 \dot{\theta}_1 \sin \theta_1 \\
+		\dot{y}_2 &= l_1 \dot{\theta}_1 \sin \theta_1 + l_2 \dot{\theta}_2 \sin \theta_2
+	\end{align*}
+	\\
+	Policzmy teraz energie kinetyczną T i potencjalną V obiektu, aby otrzymać Lagranżian L.\\
+	\begin{align*}
+		T &= \frac{1}{2} m_1 v_1^2 + \frac{1}{2} m_2 v_2^2 
+		= \frac{1}{2} m_1 (\dot{x}_1^2 + \dot{y}_1^2) + \frac{1}{2} m_2 (\dot{x}_2^2 + \dot{y}_2^2)= \\
+		&= \frac{1}{2} m_1 l_1^2 \dot{\theta}_1^2(\sin^2\theta+\cos^2\theta) + \frac{1}{2} m_2  l_1^2 \dot{\theta}_1^2(\sin^2\theta+\cos^2\theta) + \frac{1}{2} m_2 l_2^2 \dot{\theta}_2^2(\sin^2\theta+\cos^2\theta) +\\
+		&+ m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 (\cos\theta_1 cos\theta_2+\sin\theta_1 sin\theta_2)=
+		 \\
+		&= \frac{1}{2} m_1 l_1^2 \dot{\theta}_1^2 + \frac{1}{2} m_2 \left[ l_1^2 \dot{\theta}_1^2 + l_2^2 \dot{\theta}_2^2 + 2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \cos(\theta_1 - \theta_2) \right]
+	\end{align*}
+	
+	\begin{align*}
+		V &= m_1 g y_1 + m_2 g y_2 
+		= m_1 g l_1 \cos \theta_1 - m_2 g (l_1 \cos \theta_1 + l_2 \cos \theta_2)= \\
+		&= -(m_1 + m_2) g l_1 \cos \theta_1 - m_2 g l_2 \cos \theta_2
+	\end{align*}
+	\begin{align*}
+		L &=T-V= \frac{1}{2} (m_1 + m_2) l_1^2 \dot{\theta}_1^2 + \frac{1}{2} m_2 l_2^2 \dot{\theta}_2^2 + m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \cos(\theta_1 - \theta_2) +\\
+		&\quad + (m_1 + m_2) g l_1 \cos \theta_1 + m_2 g l_2 \cos \theta
+	\end{align*}
+	Skoro mamy już Lagranżian, teraz podstawimy go do wzoru Eulera-Lagrange'a względem parametrów $\theta_1$ and $\theta_2$, aby otrzymać zachdzącą dynamikę w układzie.\\
+
+	\begin{align*}
+		\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{\theta}_i} \right) - \frac{\partial L}{\partial \theta_i} = 0 \implies \frac{dp_{\theta_i}}{dt} - \frac{\partial L}{\partial \theta_i} = 0 \quad 
+	\end{align*}
+	dla $i = 1, 2$.
+	Gdzie:
+	\begin{align*}
+		p_{\theta_1} &= \frac{\partial L}{\partial \dot{\theta}_1} = (m_1 + m_2) l_1^2 \dot{\theta}_1 + m_2 l_1 l_2 \dot{\theta}_2 \cos(\theta_1 - \theta_2) \\
+		p_{\theta_2} &= \frac{\partial L}{\partial \dot{\theta}_2} = m_2 l_2^2 \dot{\theta}_2 + m_2 l_1 l_2 \dot{\theta}_1 \cos(\theta_1 - \theta_2)
+	\end{align*}
+	
+	\begin{align*}
+		\frac{dp_{\theta_1}}{dt} &= (m_1 + m_2) l_1^2 \ddot{\theta}_1 + m_2 l_1 l_2 \ddot{\theta}_2 \cos(\theta_1 - \theta_2) \\
+		&\quad - m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2) + m_2 l_1 l_2 \dot{\theta}_2^2 \sin(\theta_1 - \theta_2) \\
+		\frac{dp_{\theta_2}}{dt} &= m_2 l_2^2 \ddot{\theta}_2 + m_2 l_1 l_2 \ddot{\theta}_1 \cos(\theta_1 - \theta_2) \\
+		&\quad - m_2 l_1 l_2 \dot{\theta}_1^2 \sin(\theta_1 - \theta_2) + m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2) \\
+		\frac{\partial L}{\partial \theta_1} &= - m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2) - (m_1 + m_2) g l_1 \sin \theta_1 \\
+		\frac{\partial L}{\partial \theta_2} &= m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2) - m_2 g l_2 \sin \theta_2 \\
+	\end{align*}
+	W taki sposób otrzymujemy 2 równania:
+	
+		\begin{align*}
+		(m_1 + m_2) l_1^2 \ddot{\theta}_1 + m_2 l_1 l_2 \ddot{\theta}_2 \cos(\theta_1 - \theta_2)  
+		- m_2 l_1 l_2 \dot{\theta}_2^2 \sin(\theta_1 - \theta_2)&+\\
+		- m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2)+ m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2) + (m_1 + m_2) g l_1 \sin \theta_1 &= 0 \\
+		m_2 l_2^2 \ddot{\theta}_2 + m_2 l_1 l_2 \ddot{\theta}_1 \cos(\theta_1 - \theta_2) - m_2 l_1 l_2 \dot{\theta}_1^2 \sin(\theta_1 - \theta_2) &+\\
+		+m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2)-m_2 l_1 l_2 \dot{\theta}_1 \dot{\theta}_2 \sin(\theta_1 - \theta_2)+ m_2 g l_2 \sin \theta_2 &= 0
+	\end{align*}
+
+	Co możemy skrócić do danej formy:
+	
+	\begin{align*}
+		(m_1 + m_2) l_1 \ddot{\theta}_1 + m_2 l_2 \ddot{\theta}_2 \cos(\theta_1 - \theta_2) 
+		+ m_2 l_2 \dot{\theta}_2^2 \sin(\theta_1 - \theta_2) &+ (m_1 + m_2) g \sin \theta_1 = 0 \\
+		l_2 \ddot{\theta}_2 + l_1 \ddot{\theta}_1 \cos(\theta_1 - \theta_2) - l_1 \dot{\theta}_1^2 \sin(\theta_1 - \theta_2) &+ g \sin \theta_2 = 0
+	\end{align*}
+	Równania te tworzą układ  nieliniowych równań różniczkowych drugiego rzędu.
+	Możemy je uporządkować dzieląc pierwsze równanie przez $(m_1 + m_2) l_1$, a drugie przez $l_2$. Następnie przenosząc odpowiednie czynniki na daną stronę równania dostajemy następujący układ:
+	\begin{align*}
+		\ddot{\theta}_1 + \alpha_1(\theta_1, \theta_2) \ddot{\theta}_2 &= f_1(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) \\
+		\ddot{\theta}_2 + \alpha_2(\theta_1, \theta_2) \ddot{\theta}_1 &= f_2(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2)
+	\end{align*}
+	
+	\text{gdzie:}
+	
+	\begin{align*}
+		\alpha_1(\theta_1, \theta_2) &:= \frac{l_2}{l_1} \left( \frac{m_2}{m_1 + m_2} \right) \cos(\theta_1 - \theta_2) \\
+		\alpha_2(\theta_1, \theta_2) &:= \frac{l_1}{l_2} \cos(\theta_1 - \theta_2)
+	\end{align*}
+	
+	\begin{align*}
+		f_1(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) &:= -\frac{l_2}{l_1} \left( \frac{m_2}{m_1 + m_2} \right) \dot{\theta}_2^2 \sin(\theta_1 - \theta_2) - \frac{g}{l_1} \sin \theta_1 \\
+		f_2(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) &:= \frac{l_1}{l_2} \dot{\theta}_1^2 \sin(\theta_1 - \theta_2) - \frac{g}{l_2} \sin \theta_2
+	\end{align*}
+	
+	Układ ten możemy zapisać w postaci macierzowej
+	
+	\begin{equation}
+		A \begin{pmatrix}
+			\ddot{\theta}_1 \\
+			\ddot{\theta}_2
+		\end{pmatrix}
+		=
+		\begin{pmatrix}
+			1 & \alpha_1 \\
+			\alpha_2 & 1
+		\end{pmatrix}
+		\begin{pmatrix}
+			\ddot{\theta}_1 \\
+			\ddot{\theta}_2
+		\end{pmatrix}
+		=
+		\begin{pmatrix}
+			f_1 \\
+			f_2
+		\end{pmatrix}
+	\end{equation}
+	Sprawdżmy, czy macierz \( A \) jest odwracalna
+	
+	\begin{equation}
+		\det(A) = 1 - \alpha_1 \alpha_2 = 1 - \left( \frac{m_2}{m_1 + m_2} \right) \cos^2(\theta_1 - \theta_2) > 0
+	\end{equation}
+	
+	ponieważ \( \frac{m_2}{m_1 + m_2} < 1 \) i \( \cos^2(x) \leq 1 \) dla każdego \( x \in R\).\\
+	Macierz \( A \) jest kwadratowa (2x2) oraz jej wyznacznik jest różny od zera, więc jest odwracalna. \( A^{-1} \) wynosi: 
+
+	
+	
+	\begin{equation}
+		A^{-1} = \frac{1}{\det(A)}
+		\begin{pmatrix}
+			1 & -\alpha_1 \\
+			-\alpha_2 & 1
+		\end{pmatrix}
+		= \frac{1}{1 - \alpha_1 \alpha_2}
+		\begin{pmatrix}
+			1 & -\alpha_1 \\
+			-\alpha_2 & 1
+		\end{pmatrix}
+	\end{equation}
+	
+	Ostatecznie dostajemy:
+	
+	\begin{equation}
+		\begin{pmatrix}
+			\ddot{\theta}_1 \\
+			\ddot{\theta}_2
+		\end{pmatrix}
+		= A^{-1}
+		\begin{pmatrix}
+			f_1 \\
+			f_2
+		\end{pmatrix}
+		= \frac{1}{1 - \alpha_1 \alpha_2}
+		\begin{pmatrix}
+			f_1 - \alpha_1 f_2 \\
+			-\alpha_2 f_1 + f_2
+		\end{pmatrix}
+	\end{equation}
+	
+	
+	Wreszcie podstawiając \( \omega_1 := \dot{\theta}_1 \) i \( \omega_2 := \dot{\theta}_2 \), dostajemy równanie opisujące ruch podwójnego wahadła jako układ równań różniczkowych pierwszego rzędu względem zmiennych \( \theta_1, \theta_2, \omega_1, \omega_2 \):
+	
+	
+	\begin{equation}
+		\frac{d}{dt} \begin{pmatrix}
+			\theta_1 \\
+			\theta_2 \\
+			\omega_1 \\
+			\omega_2
+		\end{pmatrix}
+		= 
+		\begin{pmatrix}
+			\omega_1 \\
+			\omega_2 \\
+			g_1(\theta_1, \theta_2, \omega_1, \omega_2) \\
+			g_2(\theta_1, \theta_2, \omega_1, \omega_2)
+		\end{pmatrix}
+	\end{equation}
+	
+	gdzie:
+	
+	\begin{equation}
+		g_1 := \frac{f_1 - \alpha_1 f_2}{1 - \alpha_1 \alpha_2}
+	\end{equation}
+	
+	\begin{equation}
+		g_2 := \frac{-\alpha_2 f_1 + f_2}{1 - \alpha_1 \alpha_2}
+	\end{equation}
+
+	
+	\( \alpha_i = \alpha_i(\theta_1, \theta_2) \) i \( f_i = f_i(\theta_1, \theta_2, \omega_1, \omega_2) \) dla \( i = 1, 2 \) zdefiniowanych w równaniach.
+	
+	Powstałe równanie możemy rozwiązać korzystając z metod numerycznych. W naszych modelach użyjemy do tego celu metody Rungego-Kutty
+	
+	
+	\section{Sieci neuronowe}
+	
+	Krótka teoria
+	
+	
+	
+	
+	
+	
+	\section{Lagranżowskie sieci neuronowe}
+	
+	\includegraphics{obrazy/overall-idea}
+	
+	Lagranżowskie sieci neuronowe (LNN) to specyficzny rodzaj sieci neuronowych, które wykorzystują zasady mechaniki lagrangowskiej do modelowania i przewidywania ruchów fizycznych systemów. Dzięki temu mogą być bardziej dokładne i zrozumiałe w kontekście fizycznym. Jak dobrze wiemy z pierwszego rozdziału mechanika lagranżowska to podejście do opisywania ruchu obiektów. Główna idea polega na użyciu funkcji Lagrange'a $L$, która jest różnicą między energią kinetyczną $T$, a energią potencjalną $V$: $L=T-V$.  
+	Za pomocą tej funkcji możemy następująco wyprowadzić równania ruchu dla systemu, używając równań Eulera-Lagrange'a:
+	\begin{align*}
+		\frac{d}{dt} \left( \frac{\partial L}{\partial \dot{q}_i} \right) - \frac{\partial L}{\partial q_i} = 0  
+	\end{align*}
+	\begin{align*}
+		\frac{d}{dt} \frac{\partial L}{\partial \dot{q}_i} &= \frac{\partial L}{\partial q_i} 
+	\end{align*}
+	Zamieniamy na notację wektorową:
+	\begin{align*}
+		\frac{d}{dt} \nabla_{\dot{q}} L = \nabla_q L
+	\end{align*}
+	Następnie liczymy pochodną (wytłumaczyć)
+	\begin{align*}
+		(\nabla_{\dot{q}} \nabla_{\dot{q}}^\top L) \ddot{q} + (\nabla_q \nabla_{\dot{q}}^\top L) \dot{q} = \nabla_q L
+	\end{align*}
+	Na końcu porządkujemy równanie, by obliczyć $\ddot{q}$:
+	\begin{align*}
+		\ddot{q} = (\nabla_{\dot{q}} \nabla_{\dot{q}}^\top L)^{-1} \left[ \nabla_q L - (\nabla_q \nabla_{\dot{q}}^\top L) \dot{q} \right]
+	\end{align*}
+	
+	Tak więc zamiast od razu przewidywać przyspieszenie lub współrzędne układu,  LNN modeluje za pomocą sieci neuronowej funkcje Lagrange'a. Sieć przyjmuje jako wejścia współrzędne uogólnione i prędkości a jako wyjście zwraca wartość funkcji Lagrange'a. Na końcu model oblicza z niej potrzebne nam przyspieszenie. Dzięki temu sieć uczy się dynamicznego modelu systemu na podstawie danych fizycznych. Podczas treningu sieć neuronowa optymalizuje poprzez funkcję kosztu swoje parametry, aby minimalizować różnicę między przewidywanymi a rzeczywistymi wartościami.
+	
+	
+	\section{Badania}
+	Model bez LNN, Model LNN z danymi numerycznymi, model LNN z danymi rzeczywistymi
+	
+\end{document}
+
